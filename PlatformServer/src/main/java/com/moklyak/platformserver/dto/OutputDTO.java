@@ -1,4 +1,4 @@
-package com.moklyak.client.dto;
+package com.moklyak.platformserver.dto;
 
 import lombok.Data;
 
