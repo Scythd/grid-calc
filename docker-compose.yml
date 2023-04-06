@@ -1,0 +1,44 @@
+version: "3.9"
+services:
+
+  server:
+    build: ./PlatformServer/
+    ports:
+      - "8080:8080"
+    environment:
+      - APPLICATION_TIMEOUT=10000
+      - SERVER_PORT=8080
+
+
+  client1:
+    build: ./PlatformClient/
+    ports:
+      - "8081:8081"
+    environment:
+      - SERVER_PORT=8081
+      - PLATFORM_IP=server
+      - PLATFORM_PORT=8080
+    depends_on:
+      - server
+
+  client2:
+    build: ./PlatformClient/
+    ports:
+      - "8082:8082"
+    environment:
+      - SERVER_PORT=8082
+      - PLATFORM_IP=server
+      - PLATFORM_PORT=8080
+    depends_on:
+      - server
+
+  client3:
+    build: ./PlatformClient/
+    ports:
+      - "8083:8083"
+    environment:
+      - SERVER_PORT=8083
+      - PLATFORM_IP=server
+      - PLATFORM_PORT=8080
+    depends_on:
+      - server

@@ -32,4 +32,8 @@ public class HealthCheckController {
     public static void setBusy(boolean busy) {
         HealthCheckController.busy = busy;
     }
+
+    public static boolean isBusy() {
+        return busy;
+    }
 }

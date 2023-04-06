@@ -14,4 +14,7 @@ public interface PlatformClient {
 
     @PostMapping("/callback")
     public ResponseEntity<?> callback(@RequestBody OutputDTO dto);
+
+    @PostMapping("/client/test")
+    public ResponseEntity<?> test();
 }

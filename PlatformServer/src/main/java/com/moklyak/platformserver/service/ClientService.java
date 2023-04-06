@@ -18,6 +18,7 @@ import org.springframework.stereotype.Service;
 import java.net.URI;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.stream.Collectors;
 
 @Service
 @Configuration
@@ -59,15 +60,19 @@ public class ClientService {
         ResponseEntity<HealthCheckResponseDTO> response;
         try {
             response = healthCheckService.healthcheck(uri, new HealthCheckRequestDTO());
+            client.setBusy(response.getBody().isB());
         } catch (RetryableException ex){
             log.info(uri + " " + "error");
             return false;
         }
-        log.info(uri + " " + response.getStatusCode());
         return true;
     }
 
     public boolean addClient(Client client){
         return clients.add(client);
+    }
+
+    public List<Client> getFreeClients(){
+        return clients.stream().filter(x -> !x.isBusy()).collect(Collectors.toList());
     }
 }

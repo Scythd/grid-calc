@@ -4,26 +4,28 @@ package com.moklyak.enums;
  *
  */
 public enum VFE {
-    EMPTY(0, 0, 0, 0, false),
-    STR_H(1, 0, -1, 0, false),
-    STR_V(0, 1, 0, -1, false),
-    ANG_1(0, 1, 1, 0, true), // like L
-    ANG_2(0, 1, -1, 0, true), // like ⅃
-    ANG_3(0, -1, -1, 0, true), // like ⅂
-    ANG_4(1, 0, 0, -1, true); // like Г
+    EMPTY(0, 0, 0, 0, false, ' '),
+    STR_H(1, 0, -1, 0, false, '─'),
+    STR_V(0, 1, 0, -1, false, '|'),
+    ANG_1(0, 1, 1, 0, true, 'L'), // like L
+    ANG_2(0, 1, -1, 0, true, '⅃'), // like ⅃
+    ANG_3(0, -1, -1, 0, true, '⅂'), // like ⅂
+    ANG_4(1, 0, 0, -1, true, 'Г'); // like Г
 
     //one then two clockwise
     //one and two just neighbor fields with continuous line? not the amount
     private final int oneShiftX, oneShiftY, twoShiftX, twoShiftY;
     private final boolean isAngle;
 
+    private final char symbol;
     private static boolean isInit = false;
-    VFE(int oneShiftX, int oneShiftY, int twoShiftX, int twoShiftY, boolean isAngle) {
+    VFE(int oneShiftX, int oneShiftY, int twoShiftX, int twoShiftY, boolean isAngle, char symbol) {
         this.oneShiftX = oneShiftX;
         this.oneShiftY = oneShiftY;
         this.twoShiftX = twoShiftX;
         this.twoShiftY = twoShiftY;
         this.isAngle = isAngle;
+        this.symbol = symbol;
     }
 
     private VFE[] downAllowed;
@@ -64,11 +66,26 @@ public enum VFE {
     public VFE getOne(VFE[][] variants, int i, int j) {
         return variants[i-oneShiftY][j+oneShiftX];
     }
+
+    public int getOneI(VFE[][] variants, int i, int j) {
+        return i-oneShiftY;
+    }
+
+    public int getOneJ(VFE[][] variants, int i, int j) {
+        return j+oneShiftX;
+    }
     //-shift because I'm going from up to down
     public VFE getTwo(VFE[][] variants, int i, int j) {
         return variants[i-twoShiftY][j+twoShiftX];
     }
 
+    public int getTwoI(VFE[][] variants, int i, int j) {
+        return i-twoShiftY;
+    }
+
+    public int getTwoJ(VFE[][] variants, int i, int j) {
+        return j+twoShiftX;
+    }
     public boolean isAngle() {
         return isAngle;
     }
@@ -102,5 +119,10 @@ public enum VFE {
         VFE.ANG_4.setDownAllowed(downBusy);
 
         isInit = true;
+    }
+
+
+    public char getSymbol() {
+        return symbol;
     }
 }

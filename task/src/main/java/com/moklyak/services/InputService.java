@@ -6,6 +6,7 @@ import com.moklyak.others.InputField;
 import com.moklyak.others.Variant;
 
 import java.math.BigInteger;
+import java.util.Arrays;
 
 public class InputService {
 
@@ -91,5 +92,21 @@ public class InputService {
         };
         v.setFields(in);
         return v;
+    }
+
+    public static String getVariantStub(Variant v){
+        return Arrays.stream(v.getFields())
+                .flatMap(x -> Arrays.stream(x))
+                .map(x -> Arrays.asList(VFE.values()).indexOf(x))
+                .collect(StringBuilder::new, StringBuilder::append, StringBuilder::append)
+                .toString();
+    }
+
+    public static String getTaskStub(InputField t){
+        return Arrays.stream(t.getContent())
+                .flatMap(x -> Arrays.stream(x))
+                .map(x -> Arrays.asList(IFE.values()).indexOf(x))
+                .collect(StringBuilder::new, StringBuilder::append, StringBuilder::append)
+                .toString();
     }
 }

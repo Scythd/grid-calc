@@ -1,0 +1,483 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+
+</head>
+<body>
+    <main>
+        <div class="hor center toBlur">
+            <div class="ver center">
+                <div class="hor spa">
+                    <div class="hor spa">
+                        <label class="label" for="rows">Rows:&nbsp;</label>
+                        <input class="input" id="rows" type="number" value="5" />
+                    </div>
+                    <div class="hor spa">
+                        <label class="label" for="columns">Columns:&nbsp;</label>
+                        <input class="input" id="columns" type="number" value="5"/>
+                    </div>
+                </div>
+                <div class="hor spa">
+                    <button class="btn" onclick="circles=[]; inputHandler(null)">Clear field</button>
+                    <button class="btn" onclick="startTask()">Start</button>
+                </div>
+                <div class="hor center">
+                    <canvas id="canvas" width="1200px" height="800px" />
+                </div>
+            </div>
+        </div>
+        <div class="blur">
+            <div class="ver center">
+                <div class="hor center">
+                    <div class="ver center">
+                        <progress id="progressBar" max="100" value="0"> 70% </progress>
+
+                        <div class="hor center">
+                            <button class="btn" onclick="cancel()">Cancel</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+</body>
+<style>
+    *{
+        margin: 0;
+        padding: 0;
+    }
+    .toBlur{
+        position: relative;
+        height: 100%;
+        z-index: 1;
+    }
+    .blur{
+        display: none;
+        top: -100%;
+        width: 100%;
+        height: 100%;
+        position: relative;
+        background-color: rgba(80,80,80,0.8);
+        z-index: 2;
+    }
+    .blur > div {
+        height: 100%;
+    }
+    html {
+        height: 99%;
+    }
+    body, main{
+        position: relative;
+        height: 100%;
+        width: 100%;
+    }
+    .center{
+        justify-content: center;
+        align-content: center;
+    }
+    .spa{
+        justify-content: space-around;
+        align-content: space-around;
+    }
+    div{
+
+    }
+    .ver{
+        display: flex;
+        flex-direction: column;
+    }
+    .hor{
+        display: flex;
+        flex-direction: row;
+    }
+    .btn {
+        font-size: 16px;
+        height: 40px;
+        width: 200px;
+    }
+    .label{
+        font-size: 20px;
+    }
+    .input{
+        height: 30px;
+        width: 100px;
+        font-size: 16px;
+    }
+    #progressBar{
+        font-size: 50px;
+        color: black;
+    }
+</style>
+<script>
+    const CircleType = {
+        EMPTY: 0,
+        WHITE: 1,
+        BLACK: 2,
+        GREY: 3,
+        next: function (curr) {
+            switch (curr){
+                case (this.EMPTY): return this.WHITE;
+                case (this.WHITE): return this.BLACK;
+                case (this.BLACK): return this.GREY;
+                case (this.GREY) : return this.EMPTY;
+            }
+        }
+    };
+    function getNumericStyleProperty(style, prop) {
+        return parseInt(style.getPropertyValue(prop),10);
+    }
+    erase = function (){
+        let ctx = window.canvas.getContext("2d");
+        ctx.rect(0, 0, window.canvas.width, window.canvas.height);
+        ctx.fillStyle = "white";
+        ctx.fill()
+        ctx.fillStyle = "black";
+    }
+    drawF = function (w, h) {
+        let wpx, hpx;
+        wpx = window.canvas.width / w;
+        hpx = window.canvas.height / h;
+        let leftPad = 0, topPad = 0;
+        if (wpx > hpx){
+            leftPad = (window.canvas.width - hpx * w) / 2;
+            wpx = hpx;
+        } else {
+            topPad = (window.canvas.height - wpx * h) / 2;
+            hpx = wpx;
+        }
+        let ctx = window.canvas.getContext("2d");
+
+        for (let i = 0; i < h; i++){
+            for (let j = 0 ; j < w; j++){
+                ctx.beginPath();
+                ctx.rect(leftPad + j * wpx, topPad + i * hpx, wpx, hpx);
+                ctx.stroke();
+            }
+        }
+    }
+    drawCircles = function (circles){
+        let w, h;
+        h = circles.length;
+        if (h != 0) {
+            w = circles.at(0).length;
+        }
+
+        let wpx, hpx;
+        wpx = window.canvas.width / w;
+        hpx = window.canvas.height / h;
+        let leftPad = 0, topPad = 0;
+        if (wpx > hpx){
+            leftPad = (window.canvas.width - hpx * w) / 2;
+            wpx = hpx;
+        } else {
+            topPad = (window.canvas.height - wpx * h) / 2;
+            hpx = wpx;
+        }
+        let ctx = window.canvas.getContext("2d");
+        for (let i = 0.5; i < h; i++){
+            for (let j = 0.5 ; j < w; j++){
+                ctx.beginPath();
+                ctx.arc(leftPad + j * wpx, topPad + i * hpx, wpx / 2, 0, 2 * Math.PI);
+                switch (circles[i - 0.5][j - 0.5]){
+                    case (CircleType.EMPTY): break;
+                    case (CircleType.WHITE): ctx.stroke(); break;
+                    case (CircleType.BLACK): ctx.fill(); break;
+                    case (CircleType.GREY) : {
+                        ctx.fillStyle = "Grey";
+                        ctx.fill();
+                        ctx.fillStyle = "Black";
+                        break;
+                    };
+                }
+
+            }
+        }
+    }
+
+    AnswerLineType = {
+        EMPTY: 0,
+        STR_H: 1,
+        STR_V: 2,
+        ANG_1: 3, // like L
+        ANG_2: 4, // like ⅃
+        ANG_3: 5, // like ⅂
+        ANG_4: 6, // like Г
+
+        drawPath: function (type, ctx, x, y, w, h){
+            switch (type){
+                case (this.EMPTY):
+                    break;
+                case (this.STR_H):
+                    ctx.moveTo(x, y + h/2);
+                    ctx.lineTo(x + w, y + h/2);
+                    break;
+                case (this.STR_V):
+                    ctx.moveTo(x + w/2, y);
+                    ctx.lineTo(x + w/2, y + h);
+                    break;
+                case (this.ANG_1):
+                    ctx.moveTo(x + w/2, y);
+                    ctx.lineTo(x + w/2, y + h/2);
+                    ctx.lineTo(x + w, y + h/2);
+                    break;
+                case (this.ANG_2):
+                    ctx.moveTo(x + w/2, y);
+                    ctx.lineTo(x + w/2, y + h/2);
+                    ctx.lineTo(x, y + h/2);
+                    break;
+                case (this.ANG_3):
+                    ctx.moveTo(x + w/2, y + h);
+                    ctx.lineTo(x + w/2, y + h/2);
+                    ctx.lineTo(x, y + h/2);
+                    break;
+                case (this.ANG_4):
+                    ctx.moveTo(x + w/2, y + h);
+                    ctx.lineTo(x + w/2, y + h/2);
+                    ctx.lineTo(x + w, y + h/2);
+                    break;
+            }
+        }
+
+    }
+    drawAnswer = function (answer){
+        let wpx, hpx, w, h;
+        w = window.columns.value;
+        h = window.rows.value;
+        wpx = window.canvas.width / w;
+        hpx = window.canvas.height / h;
+        let leftPad = 0, topPad = 0;
+        if (wpx > hpx){
+            leftPad = (window.canvas.width - hpx * w) / 2;
+            wpx = hpx;
+        } else {
+            topPad = (window.canvas.height - wpx * h) / 2;
+            hpx = wpx;
+        }
+        let ctx = window.canvas.getContext("2d");
+        ctx.strokeStyle = "Green"
+        let tmp =  ctx.lineWidth;
+        ctx.lineWidth = 8;
+        for (let i = 0; i < h; i++){
+            for (let j = 0 ; j < w; j++){
+                ctx.beginPath();
+                AnswerLineType.drawPath(answer[i][j], ctx, leftPad + j * wpx, topPad + i * hpx, wpx, hpx);
+                ctx.stroke();
+            }
+        }
+        ctx.strokeStyle = "Black";
+        ctx.lineWidth = tmp;
+    }
+
+
+
+    copyArray = function (source, h, w) {
+        let res = [];
+        for (let i = 0; i < h; i++) {
+            res.push(new Array());
+        }
+        for (let i = 0; i < h; i++) {
+            for (let j = 0; j < w; j++) {
+                res[i][j] = CircleType.EMPTY;
+            }
+        }
+        if (source !== null && source.length > 0 && source[0].length > 1){
+            let iMax, jMax;
+            iMax = Math.min(source.length, h);
+            jMax = Math.min(source[0].length, w);
+            for (let i = 0; i < iMax; i++) {
+                for (let j = 0; j < jMax; j++) {
+                    res[i][j] = source[i][j];
+                }
+            }
+        }
+        return res;
+    }
+
+    let circles = [];
+    getWidth = function () {
+        return window.innerWidth * 0.8;
+    }
+    getHeight = function () {
+        return window.innerHeight * 0.8;
+    }
+    inputHandler = function (e){
+        let w, h;
+        w = window.columns.value;
+        h = window.rows.value;
+        if (h < 1){
+            window.rows.value = 1;
+            h = 1
+        }
+        if (w < 1){
+            window.columns.value = 1;
+            w = 1;
+        }
+
+        circles = copyArray(circles, h, w);
+
+        erase()
+        drawF(w, h);
+        drawCircles(circles);
+    }
+    window.rows.addEventListener('input', inputHandler);
+    window.rows.addEventListener('propertychange', inputHandler); // for IE8
+    window.columns.addEventListener('input', inputHandler);
+    window.columns.addEventListener('propertychange', inputHandler); // for IE8
+
+    inputHandler(null);
+</script>
+<script>
+
+    canvasOnClickHandler = function (e) {
+        let boundingRect = e.target.getBoundingClientRect();
+
+        let x = e.clientX - boundingRect.left,
+            y = e.clientY - boundingRect.top;
+
+        let style = getComputedStyle(window.canvas, null);
+
+        x -= getNumericStyleProperty(style, "margin-left");
+        y -= getNumericStyleProperty(style, "margin-top");
+
+        x -= getNumericStyleProperty(style, "border-left-width");
+        y -= getNumericStyleProperty(style, "border-top-width");
+
+        x -= getNumericStyleProperty(style, "padding-left");
+        y -= getNumericStyleProperty(style, "padding-top");
+
+        let w, h, i, j, a, pad;
+        w = window.canvas.width / window.columns.value;
+        h = window.canvas.height / window.rows.value;
+        a = Math.min(w, h);
+        let leftPad = 0, topPad = 0;
+        if (w > h){
+            leftPad = (window.canvas.width - h * window.columns.value) / 2;
+        } else {
+            topPad = (window.canvas.height - w * window.rows.value) / 2;
+        }
+        if (!(x > leftPad && x < window.canvas.width - leftPad)) return;
+        if (!(y > topPad && y < window.canvas.height - topPad)) return;
+        j = Math.floor((x - leftPad) / a);
+        i = Math.floor((y - topPad) / a);
+
+        circles[i][j] = CircleType.next(circles[i][j]);
+        inputHandler(null);
+    }
+
+    window.canvas.addEventListener('click', canvasOnClickHandler, false);
+</script>
+<script>
+    startTask = function () {
+        document.getElementsByClassName("blur")[0].style.setProperty("display", "block");
+        window.progressBar.value = 0;
+        let response = fetch("/ui/start", {
+            method : "POST",
+            mode: 'cors',
+            cache: 'no-cache',
+            credentials: 'same-origin',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            redirect: 'follow',
+            referrerPolicy: 'no-referrer',
+            body: JSON.stringify(circles)
+        });
+        progressBarProcessor();
+    }
+    cancel = function () {
+        document.getElementsByClassName("blur")[0].style.setProperty("display", "none");
+        let response = fetch("/ui/cancel", {
+            method : "POST",
+            mode: 'cors',
+            cache: 'no-cache',
+            credentials: 'same-origin',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            redirect: 'follow',
+            referrerPolicy: 'no-referrer',
+            body: null
+        });
+        handle(0);
+    }
+    getAnswer = async function () {
+        let response = await fetch("/ui/answer", {
+            method : "POST",
+            mode: 'cors',
+            cache: 'no-cache',
+            credentials: 'same-origin',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            redirect: 'follow',
+            referrerPolicy: 'no-referrer',
+            body: null
+        });
+        return await response.json();
+    }
+    getProgress = async function () {
+        let response = await fetch("/ui/progress", {
+            method : "POST",
+            mode: 'cors',
+            cache: 'no-cache',
+            credentials: 'same-origin',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            redirect: 'follow',
+            referrerPolicy: 'no-referrer',
+            body: null
+        });
+        return await response.json();
+    }
+</script>
+<script>
+    let handler;
+    handle = async function (newHandler) {
+        window.cancelAnimationFrame(handler);
+        handler = newHandler;
+    }
+    let counter = 0;
+    frameGen = async function (){
+        counter++;
+        counter = counter % 60;
+        if (counter === 0){
+            try {
+                window.progressBar.value = await getProgress();
+                if (window.progressBar.value === 100) {
+                    whenAnswer();
+                }
+            } catch (e) {
+
+            }
+        }
+        if (handler === 0) return;
+        requestAnimationFrame(frameGen);
+    }
+    progressBarProcessor = async function () {
+        handle(requestAnimationFrame(frameGen));
+    }
+    whenAnswer = async function () {
+        await handle(0);
+        let flatAnswer = await getAnswer();
+        let answer;
+        if (flatAnswer === -1){
+            console.log("no answer found");
+        } else {
+            answer = [];
+            for (let i = 0; i < circles.length; i++) {
+                answer[i] = [];
+            }
+            for (let i = 0; i < circles.length; i++) {
+                for (let j = 0; j < circles[0].length; j++) {
+                    answer[i][j] = flatAnswer[i * circles[0].length + j];
+                }
+            }
+            drawAnswer(answer);
+        }
+        document.getElementsByClassName("blur")[0].style.setProperty("display", "none");
+    }
+</script>
+</html>

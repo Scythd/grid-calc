@@ -32,7 +32,7 @@ public class ClientController {
         c.setThreadCount(client.getThreadCount());
         c.setMaxClockSpeed(client.getMaxClockSpeed());
         c.setAccessIP(httpRequest.getRemoteAddr());
-        c.setAccessPort(String.valueOf(httpRequest.getRemotePort()));
+        c.setAccessPort(String.valueOf(client.getPort()));
         Enumeration<String> e = httpRequest.getHeaderNames();
         StringBuilder s = new StringBuilder();
         while (e.hasMoreElements()){
@@ -45,6 +45,11 @@ public class ClientController {
         log.info(s.toString());
         clientService.addClient(c);
         return  ResponseEntity.ok().build();
+    }
+
+    @PostMapping("/test")
+    public ResponseEntity<?> test(){
+        return ResponseEntity.ok(null);
     }
 
 }

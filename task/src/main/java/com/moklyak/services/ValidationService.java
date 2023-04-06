@@ -5,51 +5,125 @@ import com.moklyak.enums.VFE;
 import com.moklyak.others.InputField;
 import com.moklyak.others.Variant;
 
+import java.util.Arrays;
+
 public class ValidationService {
 
-    public  static  boolean validate(Variant variant, InputField task){
-        return validateLine(variant) && validateCircles(variant, task);
-    }
-    private static boolean validateLine(Variant variant) {
+    public static int validateLine(Variant variant) {
+        VFE curr;
+
         VFE[][] variants = variant.getFields();
         int rows = variants.length;
         int columns = variants[0].length;
-        for (int i = 0; i < rows; i++) {
+        int tempIndex = rows * columns;
+
+        for (int j = 0; j < columns; j++){
+            if (!VFE.EMPTY.checkDown(variants[0][j])){
+                return j;
+            }
+        }
+
+        for (int i = 0 ; i < rows; i++){
+            if (!VFE.EMPTY.checkRight(variants[i][0])){
+                tempIndex = i * columns;
+                break;
+            }
+        }
+
+        checker : for (int i = 0; i < rows; i++) {
             for (int j = 0; j < columns; j++) {
+               curr = variants[i][j];
+
                 if (j != columns - 1) {
-                    if (!variants[i][j].checkRight(variants[i][j + 1])) {
-                        return false;
+                    if (!curr.checkRight(variants[i][j + 1])) {
+                        // here i = 8 ; j = 7
+                        tempIndex = Math.min(tempIndex, i * columns + j + 1);
                     }
                 } else {
-                    if (!variants[i][j].checkRight(VFE.EMPTY)) {
-                        return false;
+                    if (!curr.checkRight(VFE.EMPTY)) {
+                        tempIndex = Math.min(tempIndex, i * columns + j);
                     }
                 }
                 if (i != rows - 1) {
-                    if (!variants[i][j].checkDown(variants[i + 1][j])) {
-                        return false;
+                    if (!curr.checkDown(variants[i + 1][j])) {
+                        tempIndex = Math.min(tempIndex, (i + 1) * columns + j);
                     }
                 } else {
-                    if (!variants[i][j].checkDown(VFE.EMPTY)) {
-                        return false;
+                    if (!curr.checkDown(VFE.EMPTY)) {
+                        tempIndex = Math.min(tempIndex, i * columns + j);
                     }
+                }
+                if (tempIndex <= i * j){
+                    break checker;
                 }
             }
         }
-        for (int i = 0 ; i < rows; i++){
-            if (!VFE.EMPTY.checkRight(variants[i][0])){
-                return false;
-            }
-        }
-        for (int j = 0; j < columns; j++){
-            if (!VFE.EMPTY.checkDown(variants[0][j])){
-                return false;
-            }
-        }
-        return true;
+
+
+        return tempIndex;
     }
 
-    private static boolean validateCircles(Variant variant, InputField input) {
+    public static boolean validateSingleLine(Variant variant){
+        VFE[][] var = variant.getFields();
+        boolean[][] res = new boolean[var.length][var[0].length];
+        int si = 0, sj = 0;
+        for (int i = 0; i < var.length; i++) {
+            for (int j = 0; j < var[0].length; j++) {
+                if (var[i][j] == VFE.EMPTY){
+                    res[i][j] = true;
+                }
+            }
+        }
+        for (int i = 0; i < var.length; i++) {
+            for (int j = 0; j < var[0].length; j++) {
+                if (var[i][j] != VFE.EMPTY){
+                    si = i; sj = j;
+                    res[i][j] = true;
+                    break;
+                }
+            }
+        }
+        boolean isRunning = true;
+        int oneI, oneJ, twoI, twoJ, currI, currJ, prevI, prevJ, pprevI, pprevJ;
+        prevI = si;
+        prevJ = sj;
+        currI = var[prevI][prevJ].getOneI(var, prevI, prevJ);
+        currJ = var[prevI][prevJ].getOneJ(var, prevI, prevJ);
+        res[currI][currJ] = true;
+        while(isRunning){
+            pprevI = prevI;
+            pprevJ = prevJ;
+            prevI = currI;
+            prevJ = currJ;
+            oneI = var[prevI][prevJ].getOneI(var, prevI, prevJ);
+            oneJ = var[prevI][prevJ].getOneJ(var, prevI, prevJ);
+            twoI = var[prevI][prevJ].getTwoI(var, prevI, prevJ);
+            twoJ = var[prevI][prevJ].getTwoJ(var, prevI, prevJ);
+            if (pprevJ == oneJ && pprevI == oneI){
+                currI = twoI;
+                currJ = twoJ;
+            } else {
+                currI = oneI;
+                currJ = oneJ;
+            }
+
+            if (currI == si && currJ == sj){
+                isRunning = false;
+            }
+
+            res[currI][currJ] = true;
+        }
+        boolean acu = true;
+        for (int i = 0; i < var.length; i++) {
+            for (int j = 0; j < var[0].length; j++) {
+                if (var[i][j] != VFE.EMPTY){
+                    acu = acu && res[i][j];
+                }
+            }
+        }
+        return acu;
+    }
+    public static boolean validateCircles(Variant variant, InputField input) {
         VFE[][] variants = variant.getFields();
         IFE[][] tasks = input.getContent();
         int rows = variants.length;

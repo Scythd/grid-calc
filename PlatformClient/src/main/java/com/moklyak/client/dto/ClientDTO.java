@@ -7,4 +7,5 @@ public class ClientDTO {
     Double maxClockSpeed;
     Integer threadCount;
     Double bandwidth;
+    int port;
 }

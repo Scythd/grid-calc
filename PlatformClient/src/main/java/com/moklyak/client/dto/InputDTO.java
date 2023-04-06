@@ -8,5 +8,5 @@ import java.io.Serializable;
 public class InputDTO implements Serializable {
     private String id;
     private MultipartFile jarFile;
-    private String[] args;
+    private String args;
 }

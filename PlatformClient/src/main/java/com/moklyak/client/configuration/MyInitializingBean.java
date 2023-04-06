@@ -2,17 +2,24 @@ package com.moklyak.client.configuration;
 
 import com.moklyak.client.dto.ClientDTO;
 import com.moklyak.client.feign.PlatformClient;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.PropertySource;
 import org.springframework.stereotype.Component;
 
 import java.io.BufferedReader;
-
+import java.time.Instant;
 
 
 @Component
 public class MyInitializingBean implements InitializingBean {
 
+    private final Logger log = LoggerFactory.getLogger(MyInitializingBean.class);
+    @Value("${server.port}")
+    private int port;
     @Autowired
     private PlatformClient platformClient;
 
@@ -22,7 +29,14 @@ public class MyInitializingBean implements InitializingBean {
         clientDTO.setThreadCount(Runtime.getRuntime().availableProcessors());
         clientDTO.setBandwidth(getBandwidth());
         clientDTO.setMaxClockSpeed(getMaxClockSpeed());
+        clientDTO.setPort(port);
         platformClient.addClient(clientDTO);
+
+        Instant a, b;
+        a = Instant.now();
+        platformClient.test().getBody();
+        b = Instant.now();
+        log.info(b.toEpochMilli() - a.toEpochMilli() + "");
 
     }
 
